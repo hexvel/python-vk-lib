@@ -1,4 +1,5 @@
 import asyncio
+from typing import Callable, Dict
 
 from .api import VkAPI
 from .models import MessageEvent
@@ -9,14 +10,31 @@ class VkBot:
         self.token = token
         self.group_id = group_id
         self.api = None
-        self.handlers = []
+        self.handlers: Dict[str, Callable[[MessageEvent], asyncio.Future]] = {}
+        self.default_handler: Callable[[MessageEvent], asyncio.Future] = None
 
-    def on_message(self, handler):
-        self.handlers.append(handler)
+    def on_command(self, command: str):
+        def decorator(func: Callable[[MessageEvent], asyncio.Future]):
+            self.handlers[command] = func
+            return func
+
+        return decorator
+
+    def on_message(self, handler: Callable[[MessageEvent], asyncio.Future]):
+        self.default_handler = handler
 
     async def handle_event(self, event: MessageEvent):
-        for handler in self.handlers:
-            await handler(event)
+        """Обрабатывает событие типа сообщение"""
+        if event.text.startswith("/"):
+            command = event.text.split(" ")[0][1:]
+            handler = self.handlers.get(command)
+            if handler:
+                await handler(event)
+            elif self.default_handler:
+                await self.default_handler(event)
+        else:
+            if self.default_handler:
+                await self.default_handler(event)
 
     async def listen(self):
         async with VkAPI(self.token) as api:

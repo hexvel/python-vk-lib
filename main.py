@@ -9,14 +9,28 @@ from lib.models import MessageEvent
 load_dotenv()
 
 
-async def message_handler(bot: VkBot, message: MessageEvent):
-    print(f"Новое сообщение - {message.from_id}: {message.text}")
-    await bot.send_message(message.peer_id, "Ку")
+bot = VkBot(token=os.getenv("TOKEN"))
+
+
+@bot.on_command("hello")
+async def hello_command(message: MessageEvent):
+    await bot.send_message(message.peer_id, "Ку. Как я могу помочь?")
+
+
+@bot.on_command("info")
+async def info_command(message: MessageEvent):
+    await bot.send_message(message.peer_id, "Ку. Введи /hello для приветствия")
+
+
+@bot.on_message
+async def default_message_handler(message: MessageEvent):
+    await bot.send_message(
+        message.peer_id,
+        "Команда не распознана. Введи /info для получения информации",
+    )
 
 
 async def main():
-    bot = VkBot(token=os.getenv("TOKEN"))
-    bot.on_message(lambda message: message_handler(bot, message))
     await bot.run()
 
 

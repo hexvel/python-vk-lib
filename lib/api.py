@@ -33,7 +33,7 @@ class VkAPI:
                 module = importlib.import_module(f"lib.methods.{name}")
                 self.methods[name] = module.Method(self)
             except ModuleNotFoundError:
-                raise AttributeError(f"Method {name} not found in VK API")
+                raise AttributeError(f"Method {name} not found.")
         return self.methods[name]
 
     async def close(self):
