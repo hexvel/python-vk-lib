@@ -3,35 +3,21 @@ import os
 
 from dotenv import load_dotenv
 
-from lib.bot import VkBot
-from lib.models import MessageEvent
+from lib.api import VkAPI
 
 load_dotenv()
 
 
-bot = VkBot(token=os.getenv("TOKEN"))
-
-
-@bot.on_command("hello")
-async def hello_command(message: MessageEvent):
-    await bot.send_message(message.peer_id, "Ку. Как я могу помочь?")
-
-
-@bot.on_command("info")
-async def info_command(message: MessageEvent):
-    await bot.send_message(message.peer_id, "Ку. Введи /hello для приветствия")
-
-
-@bot.on_message
-async def default_message_handler(message: MessageEvent):
-    await bot.send_message(
-        message.peer_id,
-        "Команда не распознана. Введи /info для получения информации",
-    )
-
-
 async def main():
-    await bot.run()
+    async with VkAPI(token=os.getenv("TOKEN")) as api:
+        messages = api.messages
+        users = api.users
+
+        response = await messages.getLongPollServer()
+        print(response)
+
+        user_info = await users.get(user_ids="1,2,3", fields="photo_50")
+        print(user_info)
 
 
 asyncio.run(main())

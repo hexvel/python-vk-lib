@@ -1,5 +1,5 @@
 import importlib
-from typing import Any, Dict
+from typing import Any, Dict, Type
 
 import aiohttp
 
@@ -27,7 +27,7 @@ class VkAPI:
                 raise VkAPIError(data["error"])
             return data["response"]
 
-    def __getattr__(self, name: str) -> Any:
+    def __getattr__(self, name: str) -> Type[Any]:
         if name not in self.methods:
             try:
                 module = importlib.import_module(f"lib.methods.{name}")
